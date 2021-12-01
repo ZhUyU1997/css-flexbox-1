@@ -2360,47 +2360,41 @@ Flex Container Baselines</h3>
 -->
 
 <h2 id='layout-algorithm'>
-Flex Layout Algorithm</h2>
+Flex布局算法</h2>
 
-	This section contains normative algorithms
-	detailing the exact layout behavior of a flex container and its contents.
-	The algorithms here are written to optimize readability and theoretical simplicity,
-	and may not necessarily be the most efficient.
-	Implementations may use whatever actual algorithms they wish,
-	but must produce the same results as the algorithms described here.
+本节包含了详细的算法，其准确描述了flex容器及其内容的布局方式。
+这里的算法是为优化可读性和简化理论而编写的，可能不一定是最高效的。
+实际可以用任何算法实现，但结果必须与此算法相同。
 
-	Note: This section is mainly intended for implementors.
-	Authors writing web pages should generally be served well by the individual property descriptions,
-	and do not need to read this section unless they have a deep-seated urge to understand arcane details of CSS layout.
+	Note: 本节主要面向实现者。
+    通常单独的属性描述就可以很好服务于网页编写者，
+    并不需要阅读本节，除非他们有一种根深蒂固的渴望去理解 CSS 布局的神秘细节。
 
-	The following sections define the algorithm for laying out a flex container and its contents.
+	以下小节便定义了布局flex容器及其内容的算法。
 
-	Note: Flex layout works with the <a>flex items</a> in <a>order-modified document order</a>,
-	not their original document order.
+	Note: Flex布局按<a>order-modified document order</a>处理后的flex项目（<a>flex items</a>）工作，而不是原始的文档顺序。
 
 <h3 id='box-manip'>
-Initial Setup</h3>
+初始化设置</h3>
 
 	<ol start=1 class="layout-start">
 		<li id='algo-anon-box'>
-			<strong>Generate anonymous flex items</strong>
-			as described in [[#flex-items]].
+			<strong>生成匿名Flex项目</strong>
+			如[[#flex-items]]中所描述.
 	</ol>
 
 <h3 id='line-sizing'>
-Line Length Determination</h3>
+行长度测定</h3>
 
 	<ol class=continue>
 		<li id='algo-available'>
-			<strong>Determine the available main and cross space for the flex items.</strong>
-			For each dimension,
-			if that dimension of the <a>flex container</a>’s content box is a <a>definite size</a>, use that;
-			if that dimension of the <a>flex container</a> is being sized under a <a lt="min-content constraint">min</a> or <a>max-content constraint</a>,
-			the available space in that dimension is that constraint;
-			otherwise, subtract the <a>flex container</a>’s margin, border, and padding
-			from the space available to the flex container in that dimension
-			and use that value.
-			<span class='note'>This might result in an infinite value.</span>
+			<strong>测定每个flex项目的flex基础尺寸和假定的主轴尺寸。</strong>
+			对于每个维度，
+			如果flex容器（<a>flex container</a>）的内容盒所在维度是确定大小（<a>definite size</a>）, 就使用它；
+			如果flex容器所在维度在max和min-content约束下被调整尺寸（<a lt="min-content constraint">min</a> or <a>max-content constraint</a>）,
+			则该维度中的可用空间就是该约束；
+			否则，在该维度的可用空间中减去flex容器的边距、边框和填充，并使用该值。
+			<span class='note'>这可能会导致一个无穷大的值。</span>
 			<!-- Maybe???
 			For this purpose,
 			the block axis of a block container(?)
@@ -2408,422 +2402,380 @@ Line Length Determination</h3>
 			-->
 
 			<div class='example'>
-				<p>For example, the <a>available space</a> to a flex item in a
-					<a href="https://www.w3.org/TR/CSS2/visuren.html#floats">floated</a> <a value for=width>auto</a>-sized <a>flex container</a> is:
+				<p>例如： 在
+					<a href="https://www.w3.org/TR/CSS2/visuren.html#floats">floated</a> <a value for=width>auto</a>-sized flex容器中的flex项目的可用空间（<a>available space</a>）为：
 				<ul>
-					<li>the width of the <a>flex container</a>’s containing block minus the <a>flex container</a>’s margin, border, and padding in the horizontal dimension
-					<li>infinite in the vertical dimension
+					<li>flex容器的包含块的宽度减去flex容器在水平维度的边距、边框、和填充
+					<li>在垂直方向上是无限的大
 				</ul>
 			</div>
 
 		<li id='algo-main-item'>
-			<strong>Determine the <dfn>flex base size</dfn> and <dfn>hypothetical main size</dfn> of each item:</strong>
+			<strong>测定每个flex基础尺寸（<dfn>flex base size</dfn>）和假定主轴尺寸（<dfn>hypothetical main size</dfn>）：</strong>
 
 			<ol type=A>
 				<li>
-					If the item has a <a>definite</a> used <a>flex basis</a>,
-					that's the <a>flex base size</a>.
+					如果项目有一个明确的（<a>definite</a> used） <a>flex basis</a>,
+					那就作为flex基础尺寸（<a>flex base size</a>）.
 
 				<li>
-					If the flex item has ...
+					如果flex项目有：
 					<ul>
-						<li>a [=preferred aspect ratio=],
-						<li>a used <a>flex basis</a> of ''content'', and
-						<li>a <a>definite</a> <a>cross size</a>,
+						<li>一个固定的长宽比 [=preferred aspect ratio=],
+						<li>一个<a>flex basis</a>为终结值的''content'', 和
+						<span class='note'>原文为a used flex basis of 'content'，姑且这么翻译</span>
+						<li>一个明确的（<a>definite</a>）侧轴尺寸（<a>cross size</a>）,
 					</ul>
-					then the <a>flex base size</a> is calculated from
-					its <a lt="used value">used</a> <a>cross size</a>
-					and the <a>flex item</a>’s aspect ratio.
+					然后根据它的最终的（<a lt="used value">used</a>）（侧轴尺寸）<a>cross size</a>
+					和（flex项目）<a>flex item</a>的长宽比计算flex基础尺寸（<a>flex base size</a>）。
 
 				<li>
-					If the used <a>flex basis</a> is ''content'' or depends on its <a>available space</a>,
-					and the flex container is being sized under a min-content or max-content constraint
-					(e.g. when performing <a href="https://www.w3.org/TR/CSS2/tables.html#auto-table-layout">automatic table layout</a> [[!CSS2]]),
-					size the item under that constraint.
-					The <a>flex base size</a> is the item's resulting <a>main size</a>.
+					如果<a>flex basis</a>的终结值是''content''或依赖于可用空间（<a>available space</a>），
+					并且flex容器在最小内容或最大内容约束下调整尺寸
+					(例如：当执行<a href="https://www.w3.org/TR/CSS2/tables.html#auto-table-layout">automatic table layout</a> [[!CSS2]])，
+					flex基础尺寸（<a>flex base size</a>作为项目最终的主轴尺寸（<a>main size</a>）。
 
 				<li>
-					Otherwise,
-					if the used <a>flex basis</a> is ''content'' or depends on its <a>available space</a>,
-					the available main size is infinite,
-					and the flex item's inline axis is parallel to the main axis,
-					lay the item out using
-					<a href="https://www.w3.org/TR/css3-writing-modes/#orthogonal-flows">the rules for a box in an orthogonal flow</a> [[!CSS3-WRITING-MODES]].
-					The <a>flex base size</a> is the item's max-content <a>main size</a>.
+					否则，
+					如果<a>flex basis</a>的终结值是''content''或依赖于可用空间（<a>available space</a>），
+					可用的主轴尺寸是无穷大，
+					并且flex项目的inline axis与主轴平行,
+					按照
+					<a href="https://www.w3.org/TR/css3-writing-modes/#orthogonal-flows">the rules for a box in an orthogonal flow</a> [[!CSS3-WRITING-MODES]]布局项目。
+					flex基础尺寸（<a>flex base size</a>）为项目的max-content 主轴尺寸（<a>main size</a>）.
 
-					Note: This case occurs, for example,
-					in an English document (horizontal <a>writing mode</a>)
-					containing a column flex container
-					containing a vertical Japanese (vertical <a>writing mode</a>) <a>flex item</a>.
+					Note: 例如：
+					在一个英文文档（水平 <a>writing mode</a>）
+					包含一个纵向的flex容器
+					其包含一个垂直日文（垂直 <a>writing mode</a>）flex项目（<a>flex item</a>）.
 
 				<li>
-					Otherwise,
-					size the item into the <a>available space</a>
-					using its used <a>flex basis</a> in place of its <a>main size</a>,
-					treating a value of ''content'' as ''width/max-content''.
-					If a <a>cross size</a> is needed to determine the <a>main size</a>
-					(e.g. when the <a>flex item</a>’s <a>main size</a> is in its block axis,
-					or when it has a [=preferred aspect ratio=])
-					and the <a>flex item</a>’s cross size is ''auto'' and not <a>definite</a>,
-					in this calculation use ''width/fit-content'' as the <a>flex item</a>’s <a>cross size</a>.
-					The <a>flex base size</a> is the item's resulting <a>main size</a>.
+					否则，
+					使用其<a>flex basis</a>的终结值代替主轴尺寸（<a>main size</a>）将项目尺寸调整为可用空间（<a>available space</a>），
+					并且将''content''的值当作''width/max-content''处理。
+					如果主轴尺寸（ <a>main size</a>）依赖于侧轴尺寸（<a>cross size</a>）
+					(例如：当flex项目（<a>flex item</a>’）的主轴尺寸（<a>main size</a>）在它的block axis,
+					或者当它有[=preferred aspect ratio=])
+					并且flex项目（<a>flex item</a>’）侧轴尺寸是''auto''即不是明确的（<a>definite</a>）,
+					在这个计算中使用''width/fit-content''作为lex项目（<a>flex item</a>’）的侧轴尺寸（<a>cross size</a>）。
+					flex基础尺寸（<a>flex base size</a>）作为最终的主轴尺寸（<a>main size</a>）。
 
 					<wpt>
 						css-flexbox-img-expand-evenly.html
 					</wpt>
 			</ol>
 
-			When determining the <a>flex base size</a>,
-			the item’s min and max <a>main sizes</a> are ignored
-			(no clamping occurs).
-			Furthermore, the sizing calculations that floor the content box size at zero
-			when applying 'box-sizing' are also ignored.
-			(For example, an item with a specified size of zero,
-			positive padding, and ''box-sizing: border-box''
-			will have an outer <a>flex base size</a> of zero--
-			and hence a negative inner <a>flex base size</a>.)
+			当测定flex基础尺寸（<a>flex base size</a>），
+			项目的最小和最大主轴尺寸（<a>main sizes</a>）被忽略（没有钳位发生)。
+			此外，如果应用了'box-sizing'，将内容框大小限制在零的大小计算也会被忽略。
+			（例如，一个项目尺寸被指定为0，padding为正数，属性为''box-sizing: border-box''，
+			会有一个为零的外flex基础尺寸（ <a>flex base size</a> ），因此有一个负的内flex基础尺寸<a>flex base size</a>)
 
-			The <a>hypothetical main size</a> is the item's <a>flex base size</a>
-			clamped according to its <a lt="used value">used</a> min and max <a>main sizes</a>
-			(and flooring the content box size at zero).
+			假定的主轴尺寸（<a>hypothetical main size</a>）为项目的flex基础尺寸（<a>flex base size</a>）
+			被最小和最大主轴尺寸（<a>main sizes</a>的终结值（<a lt="used value">used</a>））钳位的结果
+			（内容盒尺寸被限制为非负）。
 
 		<li id='algo-main-container'>
-			<strong>Determine the <a>main size</a> of the flex container</strong>
-			using the rules of the formatting context in which it participates.
+			由所属的格式化上下文的规则<strong>测定flex容器的主轴尺寸（<a>main size</a>）</strong>
 
 			<div class=note>
-				The [=automatic block size=] of a [=block-level=] [=flex container=]
-				is its [=max-content size=].
+				一个[=block-level=] flex容器的[=automatic block size=]是它的[=max-content size=]。
 
-				The Block Layout spec should define this equivalency, but it doesn't exist yet.
+				Block Layout 规范应该定义这种相等，但它还不存在。
 			</div>
 	</ol>
 
 <h3 id='main-sizing'>
-Main Size Determination</h3>
+主轴尺寸测定</h3>
 
 	<ol class=continue>
 		<li id='algo-line-break'>
-			<strong>Collect flex items into flex lines:</strong>
+			<strong>将flex项目聚合到flex行中：</strong>
 
 			<ul>
 				<li>
-					If the flex container is <a>single-line</a>,
-					collect all the flex items into a single flex line.
+					如果flex容器是单行（<a>single-line</a>）的，那么将所有flex项目聚合到单个flex行中。
 
 				<li>
-					Otherwise,
-					starting from the first uncollected item,
-					collect consecutive items one by one
-					until the first time that the <em>next</em> collected item
-					would not fit into the flex container's [=inner size|inner=] main size
-					(or until a forced break is encountered,
-					see [[#pagination]]).
-					If the very first uncollected item wouldn't fit,
-					collect just it into the line.
+					否则，
+					从第一个未聚合的项目开始，挨个聚合，
+					直到flex容器的内部（[=inner size|inner=]）主轴尺寸无法容纳<em>下一个</em>项目
+					（或发生强制换行，请参阅[[#pagination]]）。
+
+					如果第一个就放不下，就将它聚合这个行中。
 
 					<p>
-						For this step,
-						the size of a flex item is its [=outer size|outer=] <a>hypothetical main size</a>.
-						<span class=note>(Note: This can be negative.)</span>
+						这一步，flex项目的尺寸是它的外部（[=outer size|outer=]）假定的主轴尺寸（<a>hypothetical main size</a>）。
+						<span class=note>(注意：这可能是负数)</span>
 
 					<p>
-						Repeat until all flex items have been collected into flex lines.
+						重复操作直到所有的flex项目都被聚合到flex行中。
 
 					<p class='note'>
-						Note that the "collect as many" line will collect zero-sized flex items
-						onto the end of the previous line
-						even if the last non-zero item exactly "filled up" the line.
+						“收集尽可能多的”行意味着，聚合尺寸为零的flex项目到前一行的末尾，即使最后一个尺寸非零的项目完全“填满”了该行。
 			</ul>
 
 		<li id='algo-flex'>
-			<strong><a href='#resolve-flexible-lengths'>Resolve the flexible lengths</a></strong> of all the flex items
-			to find their used <a>main size</a>. See [[#resolve-flexible-lengths]].
+			<strong><a href='#resolve-flexible-lengths'>解析所有flex项目的弹性长度</a></strong>
+			来算出它们最终的主轴尺寸（used <a>main size</a>）。参见 [[#resolve-flexible-lengths]]。
 	</ol>
 
 <h3 id='cross-sizing'>
-Cross Size Determination</h3>
+侧轴尺寸测定</h3>
 
 	<ol class=continue>
 		<li id='algo-cross-item'>
-			<strong>Determine the <dfn>hypothetical cross size</dfn> of each item</strong>
-			by performing layout as if it were an [=in-flow=] [=block-level box=]
-			with the used [=main size=] and the given available space,
-			treating <a value for=width>auto</a> as ''fit-content''.
+			<strong>测定每个项目假定侧轴尺寸（<dfn>hypothetical cross size</dfn>）。</strong>		
+			将<a value for=width>auto</a>视为''fit-content''，
+			并根据最终的（<a lt="used value">used</a>）主轴尺寸（[=main size=]）和可用空间,
+			当作[=in-flow=] [=block-level box=]来执行布局。
 
 		<li id='algo-cross-line'>
-			<strong>Calculate the cross size of each flex line.</strong>
+			<strong>计算每个flex行的侧轴尺寸。</strong>
 
 			<p>
-				If the flex container is <a>single-line</a>
-				and has a <a>definite</a> <a>cross size</a>,
-				the <a>cross size</a> of the <a>flex line</a>
-				is the <a>flex container</a>'s inner <a>cross size</a>.
+				如果flex容器是单行（ <a>single-line</a> ），
+				并且有一个明确的（<a>definite</a>）侧轴尺寸（<a>cross size</a>），
+				那么flex行（<a>flex line</a>）的侧轴尺寸（<a>cross size</a>）就是
+				flex容器的内部侧轴尺寸（inner <a>cross size</a>）。
 
 			<p>
-				Otherwise,
-				for each flex line:
+				否则，
+				对于每个flex行：
 
 			<ol>
 				<li>
-					Collect all the flex items whose inline-axis is parallel to the main-axis,
-					whose 'align-self' is ''align-self/baseline'',
-					and whose cross-axis margins are both non-<a value for=margin>auto</a>.
-					Find the largest of the distances between each item's baseline and its hypothetical outer cross-start edge,
-					and the largest of the distances between each item's baseline and its hypothetical outer cross-end edge,
-					and sum these two values.
+					聚合所有inline-axis与主轴平行、'align-self'为''align-self/baseline'',
+					并且侧轴边距均非<a value for=margin>auto</a>的flex项目。
+					分别计算每个项目的基线与其假定的外侧轴起点线和终点线之间的最大距离，并将这两个值相加。
 
 				<li>
-					Among all the items not collected by the previous step,
-					find the largest outer <a>hypothetical cross size</a>.
+					 在上步未聚合的所有项目中，找到最大的外假定侧轴尺寸（<a>hypothetical cross size</a>）。
 
 				<li>
-					The used cross-size of the <a>flex line</a> is the largest of the numbers found in the previous two steps and zero.
+					前两步计算结果与零比较，较大的便是flex行的最终（<a lt="used value">used</a>）侧轴尺寸（<a>flex line</a> ）。
 
-					If the flex container is <a>single-line</a>,
-					then clamp the line's cross-size to be within
-					the container's computed min and max <a>cross sizes</a>.
-					<span class='note'>Note that if CSS 2.1's definition of min/max-width/height applied more generally,
-					this behavior would fall out automatically.</span>
+					如果flex容器是单行（<a>single-line</a>），
+					则用计算后的容器最小和最大侧轴尺寸（<a>cross sizes</a>）钳位行的侧轴尺寸。
+					<span class='note'>注意：如果CSS 2.1关于min/max-width/height的定义更宽泛, 此行为将自动失效。</span>
 			</ol>
 
 
 		<li id='algo-line-stretch'>
-			<strong>Handle 'align-content: stretch'.</strong>
-			If the flex container has a <a>definite</a> cross size,
-			'align-content' is <a value for=align-content>stretch</a>,
-			and the sum of the flex lines' cross sizes is less than the flex container's inner cross size,
-			increase the cross size of each flex line by equal amounts
-			such that the sum of their cross sizes exactly equals the flex container's inner cross size.
+			<strong>处理''align-content: stretch''。</strong>
+			如果flex容器有一个明确的（ <a>definite</a>）侧轴尺寸，
+			'align-content'为<a value for=align-content>stretch</a>，
+			并且flex行的侧轴尺寸之和小于flex容器的内部侧轴尺寸，就等量增加每个flex行的侧轴尺寸，
+			使得侧轴尺寸精确地等于flex容器的内部侧轴尺寸。
 
 		<li id='algo-visibility'>
-			<strong>Collapse ''visibility:collapse'' items.</strong>
-			If any flex items have ''visibility: collapse'',
-			note the cross size of the line they're in as the item's |strut size|,
-			and restart layout from the beginning.
+			<strong>折叠''visibility:collapse''项目。</strong>
+			有任何flex项目属性为''visibility: collapse'',
+			记录它们所在行的侧轴尺寸作为其支撑尺寸 |strut size|，
+			并从头开始重新布局。
 
-			In this second layout round,
-			when <a href="#algo-line-break">collecting items into lines</a>,
-			treat the collapsed items as having zero <a>main size</a>.
-			For the rest of the algorithm following that step,
-			ignore the collapsed items entirely
-			(as if they were ''display:none'')
-			except that after <a href="#algo-cross-line">calculating the cross size of the lines</a>,
-			if any line's cross size is less than
-			the largest <var>strut size</var>
-			among all the collapsed items in the line,
-			set its cross size to that <var>strut size</var>.
+			在第二轮布局中，
+			在项目聚合到行中（<a href="#algo-line-break">collecting items into lines</a>）过程中， 
+			将折叠的项目的主轴尺寸（<a>main size</a>）当作零。
+			对于该步之后的算法中，
+			完全忽略折叠的项目
+			（就像它们是 ''display:none''），
+			除了计算行的侧轴尺寸（<a href="#algo-cross-line">calculating the cross size of the lines</a>），
+			如果存在行，其侧轴尺寸小于行中折叠项目里最大的支撑尺寸（<var>strut size</var>），将其侧轴尺寸设置为该支柱尺寸。
 
-			Skip this step in the second layout round.
+			在第二轮布局中跳过这一步。
 
 		<li id='algo-stretch'>
-			<strong>Determine the used cross size of each flex item.</strong>
-			If a flex item has ''align-self: stretch'',
-			its computed cross size property is <a value for=width>auto</a>,
-			and neither of its cross-axis margins are <a value for=margin>auto</a>,
-			the used outer cross size is the used cross size of its flex line,
-			clamped according to the item's used min and max <a>cross sizes</a>.
-			Otherwise,
-			the used cross size is the item's <a>hypothetical cross size</a>.
+			<strong>测定每个flex项目最终（<a lt="used value">used</a>）的侧轴尺寸。</strong>
+			如果一个flex项目属性为''align-self: stretch''，
+			它计算后的侧轴尺寸是<a value for=width>auto</a>，
+			并且它的侧轴边距都不是<a value for=margin>auto</a>，
+			最终（<a lt="used value">used</a>）外侧轴尺寸为项目的最小和最大侧轴尺寸（<a>cross sizes</a>）钳位flex行最终（<a lt="used value">used</a>）侧轴尺寸的结果。
+			否则，
+			最终的侧轴尺寸是项目的假定侧轴尺寸（<a>hypothetical cross size</a>）。
 
-			If the flex item has ''align-self: stretch'',
-			redo layout for its contents,
-			treating this used size as its definite cross size
-			so that percentage-sized children can be resolved.
+			如果flex项目属性为''align-self: stretch''，
+			则重新布局其内容，
+			将其最终（<a lt="used value">used</a>）尺寸视为其明确的（definite）侧轴尺寸，
+			以便可以解析百分比尺寸的子项。
 
 			<p class='note'>
-				Note that this step does not affect the <a>main size</a> of the flex item,
-				even if it has a [=preferred aspect ratio=].
+				注意：这一步不会影响flex项目的主轴尺寸（<a>main size</a> ），
+				即使它有一个固有的长宽比（[=preferred aspect ratio=]）。
 	</ol>
 
 <h3 id='main-alignment'>
-Main-Axis Alignment</h3>
+主轴对齐</h3>
 
 	<ol class=continue>
 		<li id='algo-main-align'>
-			<strong>Distribute any remaining free space.</strong>
-			For each flex line:
+			<strong>分发所有剩余空间。</strong>
+			对于每个flex行:
 
 			<ol>
 				<li>
-					If the remaining free space is positive
-					and at least one main-axis margin on this line is <a value for=margin>auto</a>,
-					distribute the free space equally among these margins.
-					Otherwise, set all <a value for=margin>auto</a> margins to zero.
+					如果剩余的可用空间为正数，
+					且该行内至少有一个主轴边距为<a value for=margin>auto</a>,
+					则在这些边距之间平均分配空闲空间。
+					否则， 设置所有<a value for=margin>auto</a>边距为0.
 
 				<li>
-					Align the items along the main-axis per 'justify-content'.
+					在主轴上对齐设置'justify-content'的项目。
 			</ol>
 	</ol>
 
 <h3 id='cross-alignment'>
-Cross-Axis Alignment</h3>
+侧轴对齐</h3>
 
 	<ol class=continue>
 		<li id='algo-cross-margins'>
-			<strong>Resolve cross-axis <a value for=margin>auto</a> margins.</strong>
-			If a flex item has <a value for=margin>auto</a> cross-axis margins:
+			<strong>解析侧轴的<a value for=margin>auto</a>边距。</strong>
+			如果flex项目有<a value for=margin>auto</a>侧轴边距：
 
 			<ul>
 				<li>
-					If its outer cross size
-					(treating those <a value for=margin>auto</a> margins as zero)
-					is less than the cross size of its flex line,
-					distribute the difference in those sizes equally
-					to the <a value for=margin>auto</a> margins.
+					如果它的外侧轴尺寸
+					（将<a value for=margin>auto</a>边距当作0）
+					小于其flex行的侧轴尺寸，
+					将两者差值平均分配给给a value for=margin>auto</a>边距。
 				<li>
-					Otherwise,
-					if the <a>block-start</a> or <a>inline-start</a> margin (whichever is in the cross axis)
-					is <a value for=margin>auto</a>, set it to zero.
-					Set the opposite margin so that the outer cross size of the item
-					equals the cross size of its flex line.
+					否则,
+					如果<a>block-start</a>或<a>inline-start</a>边距（在侧轴上的那个）
+					是<a value for=margin>auto</a>，则将其设置为零。
+					设置相反的边距，使项目的外侧轴尺寸等于其flex行的侧轴尺寸。
 			</ul>
 
 
 		<li id='algo-cross-align'>
-			<strong>Align all flex items along the cross-axis</strong> per 'align-self',
-			if neither of the item's cross-axis margins are <a value for=margin>auto</a>.
+			如果项目的侧轴边距都不是<a value for=margin>auto</a>，
+			<strong>沿侧轴对齐在所有属性为'align-self'的flex项目</strong>。
 
 		<li id='algo-cross-container'>
-			<strong>Determine the flex container's used cross size</strong>
-			using the rules of the [=formatting context=] in which it participates.
-			If a content-based [=cross size=] is needed,
-			use the sum of the [=flex lines=]' [=cross sizes=].
+			<strong>测定flex容器最终的（<a lt="used value">used</a>）侧轴尺寸:</strong>
+			使用它所属的[=formatting context=]规则，
+			如果需要content-based的侧轴尺寸（[=cross size=]），
+			使用所有flex行（[=flex lines=])侧轴尺寸[=cross sizes=]之和。
 
 		<li id='algo-line-align'>
-			<strong>Align all flex lines</strong> per 'align-content'.
+			<strong>对齐所有属性为'align-content'的flex行</strong>。
 	</ol>
 
 <h3 id='resolve-flexible-lengths'>
-Resolving Flexible Lengths</h3>
+解析弹性长度</h3>
 
 	<p>
-		To resolve the flexible lengths of the items within a flex line:
+		为解析在flex行中每个项目的弹性长度：
 
 	<ol>
 		<li>
-			<strong>Determine the used flex factor</strong>.
-			Sum the outer hypothetical main sizes of all items on the line.
-			If the sum is less than the flex container's inner <a>main size</a>,
-			use the flex grow factor for the rest of this algorithm;
-			otherwise, use the flex shrink factor.
+			<strong>确定弹性系数的最终值</strong>.
+			对行内所有项目的外假定主轴尺寸求和。
+			如果总和小于flex容器的内主轴尺寸，则此算法在剩余部分使用弹性增长系数,否则就用弹性收缩系数。
+		<li>
+			每个项目在flex行有一个目标主轴尺寸（<dfn>target main size</dfn>），
+			初始化为它的flex基础尺寸（[=flex base size=]）。
+			每个项目可以被初始化为未冻结的（<i>unfrozen</i>），
+			也可以是冻结的（ <i>frozen</i>）。lly <i>unfrozen</i>。
+
+			Note: 项目的目标主轴尺寸（[=target main size=]）在冻结后不能被修改。
 
 		<li>
-			Each item in the flex line has a <dfn>target main size</dfn>,
-			initially set to its [=flex base size=].
-			Each item is initially <i>unfrozen</i>
-			and may become <i>frozen</i>.
-
-			Note: An item’s [=target main size=] doesn’t change after freezing.
-
-		<li>
-			<strong>Size inflexible items.</strong>
-			Freeze,
-			setting its [=target main size=]
-			to its <a>hypothetical main size</a>&hellip;
+			<strong>调整不可伸缩项目的尺寸。</strong>
+			冻结，
+			并将它的目标主轴尺寸（[=target main size=]）设为假定的主轴尺寸（<a>hypothetical main size</a>）&hellip;
 			<ul>
 				<li>
-					any item that has a flex factor of zero
+					任何弹性因子为零的项目
 
 				<li>
-					if using the <a>flex grow factor</a>:
-					any item that has a <a>flex base size</a> greater than its <a>hypothetical main size</a>
+					如果使用弹性增长系数（<a>flex grow factor</a>）：
+					任何flex基础尺寸（<a>flex base size</a>）比其假定的主轴尺寸（<a>hypothetical main size</a>）大的项目
 
 				<li>
-					if using the <a>flex shrink factor</a>:
-					any item that has a <a>flex base size</a> smaller than its <a>hypothetical main size</a>
+					如果使用弹性收缩系数（<a>flex shrink factor</a>）：
+					任何flex基础尺寸（<a>flex base size</a>）比其假定的主轴尺寸（<a>hypothetical main size</a>）小的项目
 			</ul>
 
 		<li>
-			<strong>Calculate <dfn>initial free space</dfn>.</strong>
-			Sum the outer sizes of all items on the line,
-			and subtract this from the flex container's inner <a>main size</a>.
-			For frozen items, use their outer <a>target main size</a>;
-			for other items, use their outer <a>flex base size</a>.
+			<strong>计算初始可用空间（<dfn>initial free space</dfn>）。</strong>
+			将行内所有项目的外部尺寸相加，
+			然后从flex容器的内部主轴尺寸（<a>main size</a>）中减去它。
+			对于冻结的项目，使用它们的外部目标主轴尺寸（<a>target main size</a>）；
+			对于其他项目，使用它们的外部flex基础尺寸（<a>flex base size</a>）。
 
 		<li>
-			Loop:
+			循环：
 
 			<ol type=a>
 				<li>
-					<strong>Check for flexible items.</strong>
-					If all the flex items on the line are frozen,
-					free space has been distributed;
-					exit this loop.
+					<strong>检查flex项目。</strong>
+					如果行内的所有flex项目都是冻结，
+					则剩余空间已分发；
+					退出此循环。
 
 				<li>
-					<strong>Calculate the <dfn>remaining free space</dfn></strong>
-					as for <a>initial free space</a>, above.
-					If the sum of the unfrozen flex items’ flex factors is less than one,
-					multiply the <a>initial free space</a> by this sum.
-					If the magnitude of this value is less than the magnitude of the <a>remaining free space</a>,
-					use this as the <a>remaining free space</a>.
+					<strong>计算剩余可用空间（<dfn>remaining free space</dfn>）</strong>，
+					就像上面（<a>initial free space</a>）一样。
+					如果未冻结的flex项目的弹性因子的总和小于 1，
+					则将初始可用空间（<a>initial free space</a>）乘以该总和。
+					如果该值小于剩余可用空间（<a>remaining free space</a>），
+					则将其当作剩余可用空间（<a>remaining free space</a>）。
 
 				<li>
-					If the [=remaining free space=] is non-zero,
-					<strong>distribute it proportional to the flex factors</strong>:
+					如果剩余可用空间（[=remaining free space=]）非零：
+					<strong>分配与弹性系数成比例的可用空间。</strong>:
 
 					<dl>
-						<dt>If using the <a>flex grow factor</a>
+						<dt>如果使用弹性增长因子（<a>flex grow factor</a>）
 						<dd>
-							For every unfrozen item on the line,
-							find the ratio of the item's flex grow factor
-							to the sum of the flex grow factors of all unfrozen items on the line.
-							Set the item's <a>target main size</a> to its <a>flex base size</a>
-							plus a fraction of the <a>remaining free space</a> proportional to the ratio.
+							计算项目的弹性增长因子与行内所有未冻结项目的弹性增长因子之和的比率。
+							将项目的目标主轴尺寸设置为其flex基础尺寸（ <a>flex base size</a>）加上按比率分配的剩余可用空间(<a>remaining free space</a>)。
 
-						<dt>If using the <a>flex shrink factor</a>
+						<dt>如果使用弹性收缩因子：（<a>flex shrink factor</a>）
 						<dd>
-							For every unfrozen item on the line,
-							multiply its flex shrink factor by its inner <a>flex base size</a>,
-							and note this as its <dfn>scaled flex shrink factor</dfn>.
-							Find the ratio of the item's <a>scaled flex shrink factor</a>
-							to the sum of the <a>scaled flex shrink factors</a> of all unfrozen items on the line.
-							Set the item's <a>target main size</a> to its <a>flex base size</a>
-							minus a fraction of the absolute value of the <a>remaining free space</a> proportional to the ratio.
-							<span class='note'>Note this may result in a negative inner <a>main size</a>;
-							it will be corrected in the next step.</span>
+							对于行内每个未冻结项目，将其弹性收缩因子乘以其内部flex基础尺寸（<a>flex base size</a>），
+							并将其记为收缩后的弹性收缩因子（<dfn>scaled flex shrink factor</dfn>）。
+							求该项目的缩放收缩因子与该行内所有未冻结项目的缩放后伸缩系数（<a>scaled flex shrink factor</a>）之和的比率。
+							将项目的目标主轴尺寸设置为其弹性基础尺寸减去按比率分配的剩余可用空间（<a>remaining free space</a>）。
+							<span class='note'>这可能会导致内部主轴尺寸 <a>main size</a>为负；将在下一步中进行更正。.</span>
 					</dl>
 
 				<li>
-					<strong>Fix min/max violations.</strong>
-					Clamp each non-frozen item's <a>target main size</a> by
-					its <a lt="used value">used</a> min and max <a>main sizes</a>
-					and floor its content-box size at zero.
-					If the item's <a>target main size</a> was made smaller by this,
-					it's a max violation.
-					If the item's <a>target main size</a> was made larger by this,
-					it's a min violation.
+					<strong>修复最小/最大违规。</strong>
+					使用最小和最大主轴尺寸的最终值（<a lt="used value">used</a> min and max <a>main sizes</a>）限制每个非冻结项目的目标主轴尺寸（<a>target main size</a>），并将其内容框尺寸限制为零。
+					如果项目的目标主轴尺寸（<a>target main size</a>）因此变小，
+					则为最大违规。 
+					如果项目的目标主轴尺寸（<a>target main size</a>）因此变大，
+					则属于最小违规。
 
 				<li>
-					<strong>Freeze over-flexed items.</strong>
-					The total violation is the sum of the adjustments from the previous step
-					<code>∑(clamped size - unclamped size)</code>.
-					If the total violation is:
+					<strong>冻结过度伸缩的项目。</strong>
+					总违规是上一步的调整总和<code>∑(clamped size - unclamped size)</code>，
+					如果总违规为：
 
 					<dl>
-						<dt>Zero
+						<dt>0
 						<dd>
-							Freeze all items.
+							冻结所有项目 
 
-						<dt>Positive
+						<dt>正数
 						<dd>
-							Freeze all the items with min violations.
+							冻结所有最小违规的项目 。
 
-						<dt>Negative
+						<dt>负数
 						<dd>
-							Freeze all the items with max violations.
+							冻结所有最大违规的项目。
 					</dl>
 
-					Note: This freezes at least one item,
-					ensuring that the loop makes progress and eventually terminates.
+					Note: 这里至少冻结一个项目，
+					确保循环推进并最后终止。
 
 				<li>
-					Return to the start of this loop.
+					返回循环开始
 			</ol>
 
 		<li>
-			Set each item’s used <a>main size</a> to its <a>target main size</a>.
+			设置每个项目最终的主要尺寸（<a>main size</a>）为其目标主要尺寸（<a>target main size</a>）。
 	</ol>
 
 <!--
